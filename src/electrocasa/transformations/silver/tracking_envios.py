@@ -78,7 +78,7 @@ dp.create_auto_cdc_flow(
     source="view_tracking_envios",
     keys=["evento_id"],
     sequence_by="seq_cdc",
-    exclude_columns=["seq_cdc"],
+    except_column_list=["seq_cdc"],
     stored_as_scd_type=1,
     name="tracking_envios_cdc_flow"
 )
