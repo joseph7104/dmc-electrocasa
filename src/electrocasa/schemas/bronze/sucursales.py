@@ -4,7 +4,7 @@ def schema_sucursales():
             nombre_sucursal STRING,
             distrito STRING,
             ciudad STRING,
-            region STRING
+            region STRING,
             fecha_apertura STRING
            """
     return schema

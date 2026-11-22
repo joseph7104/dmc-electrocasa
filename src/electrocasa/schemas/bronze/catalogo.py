@@ -4,7 +4,7 @@ def schema_catalogo():
             nombre_producto STRING,
             categoria STRING,
             marca STRING,
-            precio_lista STRING
+            precio_lista STRING,
             activo STRING
            """
     return schema

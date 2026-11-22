@@ -4,11 +4,11 @@ def schema_empleados():
             nombre STRING,
             dni STRING,
             email STRING,
-            salario STRING
-            sucursal_id STRING
-            cargo STRING
-            tipo_evento STRING
-            fecha_evento STRING
+            salario STRING,
+            sucursal_id STRING,
+            cargo STRING,
+            tipo_evento STRING,
+            fecha_evento STRING,
             fecha_registro STRING
            """
     return schema
