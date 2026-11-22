@@ -2,7 +2,7 @@ from pyspark import pipelines as dp
 from pyspark.sql.functions import initcap, trim, col, when, lower, lit, regexp_extract, to_timestamp, expr, current_timestamp, upper, translate, regexp_replace, coalesce, to_date
 from pyspark.sql.types import LongType, StringType, DateType, DecimalType, BooleanType, TimestampType
 from datetime import datetime
-from src.electrocasa.schemas.silver.empleado import schema_empleado
+from src.electrocasa.schemas.silver.empleados import schema_empleado
 from src.electrocasa.utils.utils import parse_fecha_registro_safe
 
 catalog = spark.conf.get("bundle.catalog")  
