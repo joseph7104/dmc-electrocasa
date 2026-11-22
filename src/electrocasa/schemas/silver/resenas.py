@@ -17,3 +17,4 @@ def schema_resenas() -> str:
         processed_at TIMESTAMP
     """
     return schema
+

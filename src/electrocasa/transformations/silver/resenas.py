@@ -1,6 +1,6 @@
 from pyspark import pipelines as dp
-from pyspark.sql.functions import initcap, trim, col, when, lower, lit, regexp_extract, to_timestamp, expr, current_timestamp, upper, translate, regexp_replace, coalesce, to_date
-from pyspark.sql.types import LongType, StringType, DateType, DecimalType, BooleanType, TimestampType, IntegerType, ArrayType
+from pyspark.sql.functions import initcap, trim, col, when, lower, lit, regexp_extract, to_timestamp, expr, current_timestamp, upper, translate, regexp_replace, coalesce, to_date, from_json
+from pyspark.sql.types import LongType, StringType, DateType, DecimalType, BooleanType, TimestampType, IntegerType, ArrayType, StructType, StructField
 from datetime import datetime
 from src.electrocasa.schemas.silver.resenas import schema_resenas
 from src.electrocasa.utils.utils import parse_fecha_registro_safe
@@ -22,6 +22,12 @@ valid_expects = {
 
 def staging_catalogo():
 
+    schema_respuesta = StructType([
+        StructField("autor", StringType(), True),
+        StructField("texto", StringType(), True),
+        StructField("fecha", StringType(), True)
+    ])
+
     cat_norm = translate(
         upper(regexp_replace(trim(col("categoria")), r"[\s-]+", "_")),
         "ÁÉÍÓÚ",
@@ -40,6 +46,7 @@ def staging_catalogo():
         .withColumn("producto_id", trim(col("producto_id")))
         .withColumn("cliente_id", trim(col("cliente_id")))
         .withColumn("comentario", trim(col("comentario")))
+        .withColumn("respuesta_parsed", from_json(col("respuesta"), schema_respuesta))
         .withColumn('fecha_resena', parse_fecha_registro_safe(col('fecha_resena')))
         .select(
             col("resena_id").cast(StringType()),
@@ -48,9 +55,9 @@ def staging_catalogo():
             col("calificacion").cast(IntegerType()),
             col("comentario").cast(StringType()),
             col("tags").cast(ArrayType(StringType())),
-            col('respuesta.autor').cast(StringType()).alias('autor'),
-            col('respuesta.texto').cast(StringType()).alias('respuesta'),
-            col('respuesta.fecha').cast(TimestampType()).alias('fecha_comentario'),
+            col('respuesta_parsed.autor').cast(StringType()).alias('respuesta_autor'),
+            col('respuesta_parsed.texto').cast(StringType()).alias('respuesta_texto'),
+            col('respuesta_parsed.fecha').cast(TimestampType()).alias('respuesta_fecha'),
             col("file_metadata.file_name").alias("source_file"),
             col("file_metadata.file_path").alias("source_path"),
             col("file_metadata.file_modification_time").cast(TimestampType()).alias("fecha_snapshot"),
