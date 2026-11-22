@@ -29,7 +29,7 @@ def staging_empleado():
     )
 
     df = (
-        spark.readStream.table(f"{catalog}.{schema_bronze}.empleado")
+        spark.readStream.table(f"{catalog}.{schema_bronze}.empleados")
         .withColumn("id_empleado", trim(col("id_empleado")))
         .withColumn("nombre", trim(col("nombre")))
         .withColumn("dni", trim(col("dni")))
@@ -73,7 +73,7 @@ dp.create_streaming_table(
 )
 
 dp.create_auto_cdc_flow(
-    target=f"{catalog}.{schema_silver}.empleado",
+    target=f"{catalog}.{schema_silver}.empleados",
     source="view_empleado",
     keys=["id_empleado"],
     sequence_by="fecha_evento",
