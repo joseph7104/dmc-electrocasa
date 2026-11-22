@@ -54,6 +54,7 @@ def staging_empleado():
             col("dni").cast(StringType()),
             col("email").cast(StringType()),
             col("salario").cast(DecimalType(12, 2)),
+            col("sucursal_id").cast(StringType()),
             col("cargo").cast(StringType()),
             col("tipo_evento").cast(StringType()),
             col("fecha_evento").cast(TimestampType()),

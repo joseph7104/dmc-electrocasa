@@ -27,6 +27,9 @@ def parse_fecha_registro_safe(fecha_col: str | Column) -> Column:
         
         when(col_trimmed.rlike(r"^\d{2}/\d{2}/\d{4}$"),
              try_to_date(col_trimmed, 'MM/dd/yyyy')),
+
+        # Fallback automático para ISO con 'T', milisegundos, zona horaria, etc.
+        try_to_date(col_trimmed),
         
         lit(None).cast(DateType())
     )
