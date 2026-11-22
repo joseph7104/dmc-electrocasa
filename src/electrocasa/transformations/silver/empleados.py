@@ -67,7 +67,7 @@ def staging_empleado():
     return df
 
 dp.create_streaming_table(
-    name=f"{catalog}.{schema_silver}.empleado",
+    name=f"{catalog}.{schema_silver}.empleados",
     comment="Estado actual de Empleados VÁLIDOS (SCD Tipo 2)",
     schema=schema_empleado()
 )
