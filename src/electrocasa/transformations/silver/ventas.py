@@ -1,7 +1,11 @@
 from pyspark import pipelines as dp
-from pyspark.sql.functions import initcap, trim, col, when, lower, lit, regexp_extract, to_timestamp, expr, current_timestamp, upper, translate, regexp_replace, coalesce, to_date
-from pyspark.sql.types import LongType, StringType, DateType, DecimalType, BooleanType, TimestampType, IntegerType, ArrayType
-from datetime import datetime
+from pyspark.sql.functions import (
+    trim, col, when, expr, current_timestamp,
+    upper, translate, regexp_replace
+)
+from pyspark.sql.types import (
+    StringType, DecimalType, TimestampType, IntegerType
+)
 from src.electrocasa.schemas.silver.ventas import schema_ventas
 from src.electrocasa.utils.utils import parse_fecha_registro_safe
 
@@ -10,23 +14,21 @@ schema_bronze = spark.conf.get("bundle.schema_bronze")
 schema_silver = spark.conf.get("bundle.schema_silver")
 
 drop_expects = {
-    "warning_montoTotal": "monto_total > 0"
+    "drop_idVenta_nulo": "venta_id IS NOT NULL AND trim(venta_id) != ''",
+    "drop_monto_invalido": "monto_total > 0"
 }
 
 warn_expects = {
-    "warning_vendedor" : "vendedor_id IS NOT NULL",
-    "warning_idVenta": "venta_id IS NOT NULL"
+    "warning_vendedor": "vendedor_id IS NOT NULL"
 }
-
 
 @dp.temporary_view(
     name="view_ventas",
-    comment="Ventas limpio y correcto"
+    comment="Ventas limpias y validadas"
 )
 @dp.expect_all_or_drop(drop_expects)
 @dp.expect_all(warn_expects)
-
-def staging_catalogo():
+def staging_ventas():
 
     cat_norm = translate(
         upper(regexp_replace(trim(col("metodo_pago")), r"[\s-]+", "_")),
@@ -56,7 +58,7 @@ def staging_catalogo():
         )
         .withColumn("monto_total", expr("try_cast(precio_norm AS DECIMAL(12, 2))"))
         .withColumn("metodo_pago", cat_norm)
-        .withColumn('fecha_venta', parse_fecha_registro_safe(col('fecha_venta')))
+        .withColumn("fecha_venta", parse_fecha_registro_safe(col("fecha_venta")))
         .withColumn("canal", cat_canal)
         .select(
             col("venta_id").cast(StringType()),
@@ -64,13 +66,15 @@ def staging_catalogo():
             col("producto_id").cast(StringType()),
             col("vendedor_id").cast(StringType()),
             col("cantidad").cast(IntegerType()),
-            col("monto_total").cast(DecimalType(12,2)),
+            col("monto_total").cast(DecimalType(12, 2)),
             col("metodo_pago").cast(StringType()),
             col("fecha_venta").cast(TimestampType()),
             col("canal").cast(StringType()),
-            col("file_metadata.file_name").alias("source_file"),
-            col("file_metadata.file_path").alias("source_path"),
-            col("file_metadata.file_modification_time").cast(TimestampType()).alias("fecha_snapshot")
+            col("file_metadata.file_name").cast(StringType()).alias("source_file"),
+            col("file_metadata.file_path").cast(StringType()).alias("source_path"),
+            col("file_metadata.file_modification_time").cast(TimestampType()).alias("fecha_snapshot"),
+            col("ingest_at").cast(TimestampType()),
+            current_timestamp().alias("processed_at")
         )
     )
 
@@ -78,7 +82,7 @@ def staging_catalogo():
 
 dp.create_streaming_table(
     name=f"{catalog}.{schema_silver}.ventas",
-    comment="Estado actual de reseñas VÁLIDOS (SCD Tipo 1)",
+    comment="Estado actual de ventas VÁLIDAS (SCD Tipo 1)",
     schema=schema_ventas()
 )
 

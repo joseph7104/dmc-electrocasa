@@ -1,50 +1,48 @@
 from pyspark import pipelines as dp
 from pyspark.sql.functions import initcap, trim, col, when, lower, lit, regexp_extract, to_timestamp, expr, current_timestamp, upper, translate, regexp_replace, coalesce, to_date
-from pyspark.sql.types import LongType, StringType, DateType, DecimalType, BooleanType, TimestampType
+from pyspark.sql.types import LongType, StringType, DateType, DecimalType, BooleanType, TimestampType, IntegerType, ArrayType
 from datetime import datetime
-from src.electrocasa.schemas.silver.catalogo import schema_catalogo
+from src.electrocasa.schemas.silver.devoluciones import schema_devoluciones
 from src.electrocasa.utils.utils import parse_fecha_registro_safe
 
 catalog = spark.conf.get("bundle.catalog")  
 schema_bronze = spark.conf.get("bundle.schema_bronze")
 schema_silver = spark.conf.get("bundle.schema_silver")
 
-valid_expects = {
-    "warning_devolucion": "devolucion_id IS NOT NULL",
-    "warning_price": "monto_reembolso > 0"
+
+
+drop_expects = {
+    "warning_montoReembolso" : "monto_reembolso > 0",
+    "warning_idReembolso": "devolucion_id IS NOT NULL"
 }
 
+
 @dp.temporary_view(
-    name="view_catalogo",
-    comment="Catálogo limpio y correcto"
+    name="view_devoluciones",
+    comment="Devoluciones limpio y correcto"
 )
-@dp.expect_all_or_drop(valid_expects)
+@dp.expect_all_or_drop(drop_expects)
 
 def staging_catalogo():
-
     cat_norm = translate(
-        upper(regexp_replace(trim(col("categoria")), r"[\s-]+", "_")),
+        upper(regexp_replace(trim(col("metodo_pago")), r"[\s-]+", "_")),
+        "ÁÉÍÓÚ",
+        "AEIOU"
+    )
+    cat_canal = translate(
+        upper(regexp_replace(trim(col("canal")), r"[\s-]+", "_")),
         "ÁÉÍÓÚ",
         "AEIOU"
     )
 
-    fecha_archivo = to_date(
-        regexp_extract(col("file_metadata.file_name"), r"(\d{4}-\d{2}-\d{2})", 1)
-    )
-
-    today = datetime.now().date()
-
     df = (
-        spark.readStream.table(f"{catalog}.{schema_bronze}.catalogo")
+        spark.readStream.table(f"{catalog}.{schema_bronze}.devoluciones")
+        .withColumn("devolucion_id", trim(col("devolucion_id")))
+        .withColumn("venta_id", trim(col("venta_id")))
         .withColumn("producto_id", trim(col("producto_id")))
-        .withColumn("nombre_producto", trim(col("nombre_producto")))
-        .withColumn(
-            "categoria",
-            when(cat_norm.isin("LINEA_BLANCA", "COCINA", "ELECTRONICA", "CLIMATIZACION", "ENTRETENIMIENTO"), cat_norm)
-            .otherwise("OTROS")
-        )
-        .withColumn("marca", initcap(lower(trim(col("marca")))))
-        .withColumn("precio_norm", trim(regexp_replace(col("precio_lista"), r"[S/$\s]", "")))
+        .withColumn("sucursal_id", trim(col("sucursal_id")))
+        .withColumn("motivo", trim(col("motivo")))
+        .withColumn("precio_norm", trim(regexp_replace(col("monto_reembolso"), r"[S/$\s]", "")))
         .withColumn(
             "precio_norm",
             when(
@@ -52,22 +50,19 @@ def staging_catalogo():
                 regexp_replace(regexp_replace(col("precio_norm"), r"\.", ""), ",", ".")
             ).otherwise(col("precio_norm"))
         )
-        .withColumn("precio_lista", expr("try_cast(precio_norm AS DECIMAL(12, 2))"))
-        .withColumn(
-            "activo",
-            when(lower(trim(col("activo"))).isin("true", "1", "si", "sí", "s"), True)
-            .when(lower(trim(col("activo"))).isin("false", "0", "no", "n"), False)
-            .otherwise(None)
-        )
+        .withColumn("monto_reembolso", expr("try_cast(precio_norm AS DECIMAL(12, 2))"))
+        .withColumn('fecha_devolucion', parse_fecha_registro_safe(col('fecha_devolucion')))
         .select(
+            col("devolucion_id").cast(StringType()),
+            col("venta_id").cast(StringType()),
             col("producto_id").cast(StringType()),
-            col("nombre_producto").cast(StringType()),
-            col("categoria").cast(StringType()),
-            col("marca").cast(StringType()),
-            col("precio_lista").cast(DecimalType(12, 2)),
-            col("activo").cast(BooleanType()),
-            coalesce(fecha_archivo, to_date(col("ingest_at"))).cast(DateType()).alias("fecha_snapshot"),
-            col("file_metadata.file_name").cast(StringType()).alias("source_file"),
+            col("sucursal_id").cast(StringType()),
+            col("motivo").cast(StringType()),
+            col("monto_reembolso").cast(DecimalType(12,2)),
+            col("fecha_devolucion").cast(TimestampType()),
+            col("file_metadata.file_name").alias("source_file"),
+            col("file_metadata.file_path").alias("source_path"),
+            col("file_metadata.file_modification_time").cast(TimestampType()).alias("fecha_snapshot"),
             col("ingest_at").cast(TimestampType()),
             current_timestamp().alias("processed_at")
         )
@@ -76,27 +71,49 @@ def staging_catalogo():
     return df
 
 dp.create_streaming_table(
-    name=f"{catalog}.{schema_silver}.catalogo",
-    comment="Estado actual de clientes VÁLIDOS (SCD Tipo 1)",
-    schema=schema_catalogo()
+    name=f"{catalog}.{schema_silver}.devoluciones_dedup",
+    comment="Estado actual de devoluciones VÁLIDOS (SCD Tipo 1)",
+    schema=schema_devoluciones()
 )
 
 dp.create_auto_cdc_flow(
-    target=f"{catalog}.{schema_silver}.catalogo",
-    source="view_catalogo",
-    keys=["producto_id"],
+    target=f"{catalog}.{schema_silver}.devoluciones_dedup",
+    source="view_devoluciones",
+    keys=["devolucion_id"],
     sequence_by="fecha_snapshot",
-    column_list=[
-        "nombre_producto",
-        "categoria",
-        "marca",
-        "precio_lista",
-        "activo",
-        "fecha_snapshot",
-        "source_file",
-        "ingest_at",
-        "processed_at"
-    ],
     stored_as_scd_type=1,
-    name="catalogo_cdc_flow"
+    name="devoluciones_cdc_flow"
 )
+
+
+
+
+drop_expects_negocio = {
+    "drop_venta_inexistente": "monto_venta IS NOT NULL",
+    "drop_monto_excede_venta": "monto_reembolso <= monto_venta"
+}
+
+@dp.materialized_view(
+    name=f"{catalog}.{schema_silver}.devoluciones",
+    comment="Devoluciones deduplicadas y validadas contra el monto de venta"
+)
+@dp.expect_all_or_drop(drop_expects_negocio)
+
+def silver_devoluciones_validadas():
+    df_dev = spark.read.table(f"{catalog}.{schema_silver}.devoluciones_dedup")
+    
+    df_ventas = (
+        spark.read.table(f"{catalog}.{schema_silver}.ventas")
+        .select(
+            col("venta_id"),
+            col("monto_total").alias("monto_venta")
+        )
+    )
+
+    return (
+        df_dev.join(df_ventas, on="venta_id", how="left")
+        .select(
+            df_dev["*"],
+            col("monto_venta") # Se mantiene para evaluar el expect (puedes quitarla si haces el expect en una vista intermedia)
+        )
+    )
