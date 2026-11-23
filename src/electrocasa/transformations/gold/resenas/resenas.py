@@ -59,7 +59,10 @@ def resenas():
                 v2.categoria_calificacion,
                 v2.num_resenas,
                 vt.num_resenas_total,
-                v2.num_resenas / vt.num_resenas_total * 100 porcentaje
+                CAST(
+                ROUND(COALESCE(v2.num_resenas, 0) * 100.0 / vt.num_resenas_total, 2) 
+                AS DECIMAL(10, 2)
+            ) AS porcentaje
             FROM vista_2 v2
             LEFT JOIN vista_total vt ON v2.ID = vt.ID
             ORDER BY 1,2,3,4
