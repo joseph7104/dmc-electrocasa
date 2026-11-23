@@ -5,7 +5,7 @@ def schema_dim_empleado() -> str:
     spark = SparkSession.getActiveSession()
     assert spark is not None
     catalog = spark.conf.get("bundle.catalog")
-    schema_gold = spark.conf.get("bundle.schema_gold")
+    schema_silver = spark.conf.get("bundle.schema_silver")
 
     schema = f"""
         id_empleado STRING,
