@@ -7,7 +7,7 @@ resources:
         # Tarea 1: Ejecutar notebook de infraestructura (esquemas + volumes)
         - task_key: setup_inicial
           notebook_task:
-            notebook_path: ../notebooks/00_setup
+            notebook_path: ../notebooks/00_setup.ipynb
             base_parameters:
               catalog: ${var.catalog}
 

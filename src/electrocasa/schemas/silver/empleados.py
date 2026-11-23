@@ -1,10 +1,13 @@
+catalog = spark.conf.get("bundle.catalog")
+schema_silver = spark.conf.get("bundle.schema_silver")
+
 def schema_empleado() -> str:
-    schema = """
+    schema = f"""
         id_empleado STRING NOT NULL,
         nombre STRING,
-        dni STRING,
+        dni STRING MASK {catalog}.{schema_silver}.mask_dni,
         email STRING,
-        salario DECIMAL(12, 2),
+        salario DECIMAL(12, 2) MASK {catalog}.{schema_silver}.mask_salario,
         sucursal_id STRING,
         cargo STRING,
         tipo_evento STRING,
