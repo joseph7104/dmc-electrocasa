@@ -17,6 +17,15 @@ resources:
             - task_key: setup_inicial
           pipeline_task:
             pipeline_id: ${resources.pipelines.electrocasa_pipeline.id}
+        
+        # Tarea 3: Aplicar permisos GRANT / REVOKE en Unity Catalog
+        - task_key: aplicar_gobierno
+          depends_on:
+            - task_key: ejecutar_pipeline
+          notebook_task:
+            notebook_path: ../notebooks/01_gobierno.ipynb
+            base_parameters:
+              catalog: ${var.catalog}
 
       # Programación opcional (puedes dejarlo comentado o en PAUSED si solo lo correrás manual)
       schedule:
