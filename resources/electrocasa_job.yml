@@ -1,0 +1,25 @@
+resources:
+  jobs:
+    electrocasa_etl_job:
+      name: "electrocasa_etl_${bundle.target}"
+
+      tasks:
+        # Tarea 1: Ejecutar notebook de infraestructura (esquemas + volumes)
+        - task_key: setup_inicial
+          notebook_task:
+            notebook_path: ../notebooks/00_setup
+            base_parameters:
+              catalog: ${var.catalog}
+
+        # Tarea 2: Ejecutar el pipeline Lakeflow (Bronze -> Silver -> Gold)
+        - task_key: ejecutar_pipeline
+          depends_on:
+            - task_key: setup_inicial
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.electrocasa_pipeline.id}
+
+      # Programación opcional (puedes dejarlo comentado o en PAUSED si solo lo correrás manual)
+      schedule:
+        quartz_cron_expression: "0 0 6 * * ?"
+        timezone_id: "America/Lima"
+        pause_status: PAUSED
