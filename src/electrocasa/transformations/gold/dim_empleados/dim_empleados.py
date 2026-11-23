@@ -1,4 +1,5 @@
 from pyspark import pipelines as dp
+from pyspark.sql.functions import col
 from src.electrocasa.schemas.gold.dim_empleados import schema_dim_empleado
 
 catalog = spark.conf.get("bundle.catalog")
@@ -12,5 +13,11 @@ schema_gold = spark.conf.get("bundle.schema_gold")
 def gold_dim_empleados():
     return (
         spark.read.table(f"{catalog}.{schema_silver}.empleados")
-        .select("id_empleado", "nombre", "dni", "salario", "cargo")
+        .select(
+            col("id_empleado"),
+            col("nombre"),
+            col("dni"),
+            col("salario").cast("decimal(12, 2)"),
+            col("cargo")
+        )
     )
