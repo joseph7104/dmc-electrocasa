@@ -1,5 +1,5 @@
 from pyspark import pipelines as dp
-from src.electrocasa.schemas.gold.venta_netas import schema_ventas_netas
+from src.electrocasa.schemas.gold.ventas_netas import schema_ventas_netas
 
 catalog = spark.conf.get("bundle.catalog")
 
