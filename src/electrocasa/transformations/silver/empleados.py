@@ -11,7 +11,8 @@ schema_silver = spark.conf.get("bundle.schema_silver")
 
 valid_expects = {
     "warning_empleado": "id_empleado IS NOT NULL",
-    "warning_fecha_evento": "fecha_evento IS NOT NULL"
+    "warning_fecha_evento": "fecha_evento IS NOT NULL",
+    "warning_sueldo": "salario > 0"
 }
 
 @dp.temporary_view(

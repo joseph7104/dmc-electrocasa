@@ -61,6 +61,10 @@ reglas_de_calidad:
     condicion: fecha_evento IS NOT NULL
     politica: drop
     destino_rechazos: descarte_en_pipeline
+  - nombre: warning_salario
+    condicion: salario > 0
+    politica: drop
+    destino_rechazos: descarte_en_pipeline
 problemas_conocidos:
   - salario llega como texto con símbolos de moneda (S/, $), espacios o con coma decimal y punto de miles
   - tipo_evento llega con variantes de escritura, tildes, espacios y guiones; se estandariza a mayúsculas sin tildes
