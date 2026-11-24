@@ -87,6 +87,7 @@ dp.create_auto_cdc_flow(
     keys=["producto_id"],
     sequence_by="fecha_snapshot",
     column_list=[
+        "producto_id",
         "nombre_producto",
         "categoria",
         "marca",
