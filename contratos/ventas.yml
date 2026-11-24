@@ -1,0 +1,72 @@
+fuente: ventas
+responsable: area_comercial
+llegada: archivos CSV por lote en /Volumes/<catalogo>/default/vol_landing/ventas/
+frecuencia_esperada: mensual
+llave: venta_id
+columnas:
+  - nombre: venta_id
+    tipo: string
+    nulo: false
+  - nombre: sucursal_id
+    tipo: string
+    nulo: true
+  - nombre: producto_id
+    tipo: string
+    nulo: true
+  - nombre: vendedor_id
+    tipo: string
+    nulo: true
+    regla: se monitorea presencia con alerta (warn) sin descartar la venta
+  - nombre: cantidad
+    tipo: int
+    nulo: true
+  - nombre: monto_total
+    tipo: decimal(12,2)
+    nulo: false
+    regla: mayor a 0
+  - nombre: metodo_pago
+    tipo: string
+    nulo: true
+    regla: normalizado en mayúsculas sin tildes y con guiones bajos
+  - nombre: fecha_venta
+    tipo: timestamp
+    nulo: true
+  - nombre: canal
+    tipo: string
+    nulo: true
+    regla: normalizado en mayúsculas sin tildes y con guiones bajos
+  - nombre: source_file
+    tipo: string
+    nulo: true
+  - nombre: source_path
+    tipo: string
+    nulo: true
+  - nombre: fecha_snapshot
+    tipo: timestamp
+    nulo: true
+  - nombre: ingest_at
+    tipo: timestamp
+    nulo: true
+  - nombre: processed_at
+    tipo: timestamp
+    nulo: true
+reglas_de_calidad:
+  - nombre: drop_idVenta_nulo
+    condicion: venta_id IS NOT NULL AND trim(venta_id) != ''
+    politica: drop
+    destino_rechazos: descarte_en_pipeline
+  - nombre: drop_monto_invalido
+    condicion: monto_total > 0
+    politica: drop
+    destino_rechazos: descarte_en_pipeline
+  - nombre: warning_vendedor
+    condicion: vendedor_id IS NOT NULL
+    politica: warn
+    destino_rechazos: registro_en_event_log
+problemas_conocidos:
+  - monto_total llega como texto con símbolos de moneda (S/, $), espacios o con coma decimal y punto de miles (ej. 1.234,50)
+  - cantidad llega como texto con posibles espacios y se convierte de forma segura a INT (try_cast)
+  - metodo_pago y canal llegan con variantes de escritura, tildes, espacios y guiones; se estandarizan a mayúsculas sin tildes con guiones bajos
+  - fecha_venta llega en formatos de fecha heterogéneos (se estandariza a TIMESTAMP con parse_fecha_registro_safe)
+  - registros con vendedor_id nulo (se conservan y registran como advertencia en el event log)
+  - registros repetidos en reingestas de lotes posteriores (deduplicados en silver.ventas con AUTO CDC SCD Tipo 1 por venta_id y fecha_snapshot)

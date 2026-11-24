@@ -1,0 +1,53 @@
+fuente: catalogo
+responsable: area_comercial
+llegada: archivos JSON (snapshots completos) en /Volumes/<catalogo>/default/vol_landing/catalogo/
+frecuencia_esperada: por_snapshot
+llave: producto_id
+columnas:
+  - nombre: producto_id
+    tipo: string
+    nulo: false
+  - nombre: nombre_producto
+    tipo: string
+    nulo: true
+  - nombre: categoria
+    tipo: string
+    nulo: true
+    regla: valores permitidos (LINEA_BLANCA, COCINA, ELECTRONICA, CLIMATIZACION, ENTRETENIMIENTO, OTROS)
+  - nombre: marca
+    tipo: string
+    nulo: true
+  - nombre: precio_lista
+    tipo: decimal(12,2)
+    nulo: false
+    regla: mayor a 0
+  - nombre: activo
+    tipo: boolean
+    nulo: true
+  - nombre: fecha_snapshot
+    tipo: date
+    nulo: true
+  - nombre: source_file
+    tipo: string
+    nulo: true
+  - nombre: ingest_at
+    tipo: timestamp
+    nulo: true
+  - nombre: processed_at
+    tipo: timestamp
+    nulo: true
+reglas_de_calidad:
+  - nombre: warning_price
+    condicion: precio_lista > 0 AND precio_lista IS NOT NULL
+    politica: drop
+    destino_rechazos: descarte_en_pipeline
+  - nombre: warning_idProducto
+    condicion: producto_id IS NOT NULL
+    politica: drop
+    destino_rechazos: descarte_en_pipeline
+problemas_conocidos:
+  - precio_lista llega como texto con símbolos de moneda (S/, $), espacios o con coma decimal y punto de miles (ej. 1.234,50)
+  - categoria llega con variantes de escritura, tildes, espacios y guiones; se normaliza a un conjunto cerrado en mayúsculas sin tildes
+  - marca llega con formato de mayúsculas y minúsculas inconsistente (se estandariza con initcap)
+  - activo llega con múltiples representaciones de texto (true, false, 1, 0, si, sí, s, no, n)
+  - productos duplicados en el snapshot de marzo; se deduplican en Silver con AUTO CDC (SCD Tipo 1) usando producto_id y fecha_snapshot

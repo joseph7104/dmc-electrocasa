@@ -1,0 +1,71 @@
+fuente: devoluciones
+responsable: area_comercial
+llegada: archivos CSV por lote en /Volumes/<catalogo>/default/vol_landing/devoluciones/
+frecuencia_esperada: mensual
+llave: devolucion_id
+columnas:
+  - nombre: devolucion_id
+    tipo: string
+    nulo: false
+  - nombre: venta_id
+    tipo: string
+    nulo: false
+    regla: debe existir en silver.ventas
+  - nombre: producto_id
+    tipo: string
+    nulo: true
+  - nombre: sucursal_id
+    tipo: string
+    nulo: true
+  - nombre: motivo
+    tipo: string
+    nulo: true
+  - nombre: monto_reembolso
+    tipo: decimal(12,2)
+    nulo: false
+    regla: mayor a 0 y menor o igual a monto_venta
+  - nombre: fecha_devolucion
+    tipo: timestamp
+    nulo: true
+  - nombre: monto_venta
+    tipo: decimal(12,2)
+    nulo: false
+    regla: obtenido del join con silver.ventas para validar tope de reembolso
+  - nombre: source_file
+    tipo: string
+    nulo: true
+  - nombre: source_path
+    tipo: string
+    nulo: true
+  - nombre: fecha_snapshot
+    tipo: timestamp
+    nulo: true
+  - nombre: ingest_at
+    tipo: timestamp
+    nulo: true
+  - nombre: processed_at
+    tipo: timestamp
+    nulo: true
+reglas_de_calidad:
+  - nombre: warning_montoReembolso
+    condicion: monto_reembolso > 0
+    politica: drop
+    destino_rechazos: descarte_en_pipeline
+  - nombre: warning_idReembolso
+    condicion: devolucion_id IS NOT NULL
+    politica: drop
+    destino_rechazos: descarte_en_pipeline
+  - nombre: drop_venta_inexistente
+    condicion: monto_venta IS NOT NULL
+    politica: drop
+    destino_rechazos: descarte_en_pipeline
+  - nombre: drop_monto_excede_venta
+    condicion: monto_reembolso <= monto_venta
+    politica: drop
+    destino_rechazos: descarte_en_pipeline
+problemas_conocidos:
+  - monto_reembolso llega como texto con símbolos de moneda (S/, $), espacios o con coma decimal y punto de miles
+  - fecha_devolucion llega con formatos de fecha variados (se estandariza a TIMESTAMP con parse_fecha_registro_safe)
+  - devoluciones huérfanas con venta_id inexistente en silver.ventas
+  - devoluciones con monto_reembolso menor o igual a 0, o mayor al monto_total de la venta de origen
+  - registros repetidos en reingestas de lotes posteriores (deduplicados en silver.devoluciones_dedup con AUTO CDC SCD Tipo 1 por devolucion_id y fecha_snapshot)

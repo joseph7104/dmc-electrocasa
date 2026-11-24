@@ -1,0 +1,41 @@
+fuente: sucursales
+responsable: operaciones
+llegada: archivo CSV único en /Volumes/<catalogo>/default/vol_landing/sucursales/
+frecuencia_esperada: unica_vez
+llave: sucursal_id
+columnas:
+  - nombre: sucursal_id
+    tipo: string
+    nulo: false
+  - nombre: nombre_sucursal
+    tipo: string
+    nulo: true
+  - nombre: distrito
+    tipo: string
+    nulo: true
+  - nombre: ciudad
+    tipo: string
+    nulo: true
+  - nombre: region
+    tipo: string
+    nulo: true
+  - nombre: source_file
+    tipo: string
+    nulo: true
+  - nombre: source_path
+    tipo: string
+    nulo: true
+  - nombre: ingest_at
+    tipo: timestamp
+    nulo: true
+  - nombre: processed_at
+    tipo: timestamp
+    nulo: true
+reglas_de_calidad:
+  - nombre: warning_sucursal_id
+    condicion: sucursal_id IS NOT NULL
+    politica: drop
+    destino_rechazos: descarte_en_pipeline
+problemas_conocidos:
+  - espacios en blanco sobrantes en campos de texto (limpiados con trim)
+  - inconsistencias de mayúsculas y minúsculas (casing) en la columna ciudad

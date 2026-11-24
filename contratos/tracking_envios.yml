@@ -1,0 +1,48 @@
+fuente: tracking_envios
+responsable: logistica
+llegada: tabla en Azure SQL Database ingerida incrementalmente con Lakeflow Connect (query-based, cursor fecha_modificacion) en bronze.tracking_envios
+frecuencia_esperada: incremental_por_cursor
+llave: evento_id
+columnas:
+  - nombre: evento_id
+    tipo: int
+    nulo: false
+  - nombre: tracking_id
+    tipo: string
+    nulo: true
+  - nombre: venta_id
+    tipo: string
+    nulo: true
+  - nombre: courier
+    tipo: string
+    nulo: true
+  - nombre: estado_entrega
+    tipo: string
+    nulo: false
+    regla: valores permitidos (PENDIENTE, EN_TRANSITO, ENTREGADO, DEVUELTO)
+  - nombre: sucursal_origen
+    tipo: string
+    nulo: true
+  - nombre: fecha_actualizacion
+    tipo: date
+    nulo: true
+  - nombre: fecha_modificacion
+    tipo: timestamp
+    nulo: true
+  - nombre: processed_at
+    tipo: timestamp
+    nulo: true
+reglas_de_calidad:
+  - nombre: warning_estados
+    condicion: estado_entrega IN ('PENDIENTE','EN_TRANSITO','ENTREGADO','DEVUELTO')
+    politica: drop
+    destino_rechazos: descarte_en_pipeline
+  - nombre: warning_idEvento
+    condicion: evento_id IS NOT NULL
+    politica: drop
+    destino_rechazos: descarte_en_pipeline
+problemas_conocidos:
+  - estado_entrega llega con variantes de escritura, tildes, espacios y guiones; se normaliza a mayúsculas sin tildes y se restringe al conjunto cerrado (PENDIENTE, EN_TRANSITO, ENTREGADO, DEVUELTO)
+  - mensajes reprocesados donde el mismo cambio de estado llega registrado más de una vez con distinto evento_id (se eliminan antes del cálculo de métricas en Gold)
+  - eventos de tracking con venta_id inexistente en ventas (referencias huérfanas)
+  - actualizaciones sobre el mismo evento_id deduplicadas en Silver con AUTO CDC (SCD Tipo 1) usando seq_cdc (coalesce entre fecha_modificacion y fecha_actualizacion)

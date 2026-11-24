@@ -1,0 +1,67 @@
+fuente: resenas
+responsable: atencion_al_cliente
+llegada: archivos JSON Lines por lote en /Volumes/<catalogo>/default/vol_landing/resenas/
+frecuencia_esperada: por_lote
+llave: resena_id
+columnas:
+  - nombre: resena_id
+    tipo: string
+    nulo: false
+  - nombre: producto_id
+    tipo: string
+    nulo: true
+  - nombre: cliente_id
+    tipo: string
+    nulo: true
+  - nombre: calificacion
+    tipo: int
+    nulo: false
+    regla: entre 1 y 5 (mayor a 0 y menor o igual a 5)
+  - nombre: comentario
+    tipo: string
+    nulo: true
+  - nombre: tags
+    tipo: array<string>
+    nulo: true
+  - nombre: respuesta_autor
+    tipo: string
+    nulo: true
+  - nombre: respuesta_texto
+    tipo: string
+    nulo: true
+  - nombre: respuesta_fecha
+    tipo: timestamp
+    nulo: true
+  - nombre: fecha_resena
+    tipo: timestamp
+    nulo: true
+  - nombre: fecha_snapshot
+    tipo: timestamp
+    nulo: true
+  - nombre: source_file
+    tipo: string
+    nulo: true
+  - nombre: source_path
+    tipo: string
+    nulo: true
+  - nombre: ingest_at
+    tipo: timestamp
+    nulo: true
+  - nombre: processed_at
+    tipo: timestamp
+    nulo: true
+reglas_de_calidad:
+  - nombre: warning_calificacion
+    condicion: calificacion > 0 AND calificacion <= 5
+    politica: drop
+    destino_rechazos: descarte_en_pipeline
+  - nombre: warning_idResena
+    condicion: resena_id IS NOT NULL
+    politica: drop
+    destino_rechazos: descarte_en_pipeline
+problemas_conocidos:
+  - calificaciones fuera del rango válido de 1 a 5 (descartadas en Silver)
+  - fecha_resena llega con formatos de fecha variados (se estandariza a TIMESTAMP con parse_fecha_registro_safe)
+  - estructura JSON Lines anidada con tags (arreglo de texto), respuestas de atención al cliente y campo metadata variable según origen
+  - reseñas con producto_id inexistente en el catálogo (se filtran al cruzar con catálogo en Gold)
+  - registros repetidos en reingestas de lotes posteriores (deduplicados en silver.resenas con AUTO CDC SCD Tipo 1 por resena_id y fecha_snapshot; además se explota tags en la vista materializada silver.resenas_tags)

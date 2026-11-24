@@ -1,0 +1,69 @@
+fuente: empleados
+responsable: rrhh
+llegada: archivos CSV por lote en /Volumes/<catalogo>/default/vol_landing/empleados/
+frecuencia_esperada: por_lote
+llave: id_empleado
+columnas:
+  - nombre: id_empleado
+    tipo: string
+    nulo: false
+  - nombre: nombre
+    tipo: string
+    nulo: true
+  - nombre: dni
+    tipo: string
+    nulo: true
+    regla: protegido con columna enmascarada (mask_dni), visible solo para electrocasa_ingenieria
+  - nombre: email
+    tipo: string
+    nulo: true
+  - nombre: salario
+    tipo: decimal(12,2)
+    nulo: true
+    regla: protegido con columna enmascarada (mask_salario), visible solo para electrocasa_ingenieria
+  - nombre: sucursal_id
+    tipo: string
+    nulo: true
+  - nombre: cargo
+    tipo: string
+    nulo: true
+  - nombre: tipo_evento
+    tipo: string
+    nulo: true
+    regla: normalizado en mayúsculas sin tildes; BAJA se aplica como eliminación lógica en SCD Tipo 2
+  - nombre: fecha_evento
+    tipo: timestamp
+    nulo: false
+  - nombre: fecha_registro
+    tipo: timestamp
+    nulo: true
+  - nombre: source_file
+    tipo: string
+    nulo: true
+  - nombre: ingest_at
+    tipo: timestamp
+    nulo: true
+  - nombre: processed_at
+    tipo: timestamp
+    nulo: true
+  - nombre: __START_AT
+    tipo: timestamp
+    nulo: true
+  - nombre: __END_AT
+    tipo: timestamp
+    nulo: true
+reglas_de_calidad:
+  - nombre: warning_empleado
+    condicion: id_empleado IS NOT NULL
+    politica: drop
+    destino_rechazos: descarte_en_pipeline
+  - nombre: warning_fecha_evento
+    condicion: fecha_evento IS NOT NULL
+    politica: drop
+    destino_rechazos: descarte_en_pipeline
+problemas_conocidos:
+  - salario llega como texto con símbolos de moneda (S/, $), espacios o con coma decimal y punto de miles
+  - tipo_evento llega con variantes de escritura, tildes, espacios y guiones; se estandariza a mayúsculas sin tildes
+  - fecha_evento y fecha_registro llegan en formatos de fecha heterogéneos (se estandarizan a TIMESTAMP con parse_fecha_registro_safe)
+  - eventos de llegada tardía y múltiples eventos por empleado (altas, transferencias, cambios de salario y bajas); se historizan con AUTO CDC SCD Tipo 2 usando fecha_evento como sequence_by y tipo_evento = 'BAJA' como apply_as_deletes
+  - campos sensibles (dni y salario) requieren enmascaramiento dinámico en Unity Catalog (mask_dni y mask_salario)
