@@ -21,18 +21,12 @@ def silver_sucursales():
         .withColumn("distrito", trim(col("distrito")))
         .withColumn("ciudad", trim(col("ciudad")))
         .withColumn("region", trim(col("region")))
-        # Ajusta las columnas reales de tu tabla sucursales aquí:
-        # .withColumn("nombre", trim(col("nombre")))
-        # .withColumn("ciudad", upper(trim(col("ciudad"))))
         .select(
             col("sucursal_id").cast(StringType()),
             col("nombre_sucursal").cast(StringType()),
             col("distrito").cast(StringType()),
             col("ciudad").cast(StringType()),
             col("region").cast(StringType()),
-            col("file_metadata.file_name").cast(StringType()).alias("source_file"),
-            col("file_metadata.file_path").cast(StringType()).alias("source_path"),
-            col("ingest_at").cast(TimestampType()),
             current_timestamp().alias("processed_at")
         )
     )

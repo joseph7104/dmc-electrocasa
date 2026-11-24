@@ -11,14 +11,25 @@ resources:
             base_parameters:
               catalog: ${var.catalog}
 
-        # Tarea 2: Ejecutar el pipeline Lakeflow (Bronze -> Silver -> Gold)
+        # Tarea 2 (NUEVA): Ingesta de sucursales en Bronze con COPY INTO
+        - task_key: ingesta_sucursales_bronze
+          depends_on:
+            - task_key: setup_inicial
+          notebook_task:
+            notebook_path: ../notebooks/ingesta_sucursales.ipynb # Ajusta al nombre real de tu notebook
+            base_parameters:
+              catalog: ${var.catalog}
+              schema_bronze: ${var.schema_bronze}
+              landing_path: ${var.landing_path}
+
+        # Tarea 3: Ejecutar el pipeline Lakeflow (Bronze -> Silver -> Gold)
         - task_key: ejecutar_pipeline
           depends_on:
             - task_key: setup_inicial
           pipeline_task:
             pipeline_id: ${resources.pipelines.electrocasa_pipeline.id}
         
-        # Tarea 3: Aplicar permisos GRANT / REVOKE en Unity Catalog
+        # Tarea 4: Aplicar permisos GRANT / REVOKE en Unity Catalog
         - task_key: aplicar_gobierno
           depends_on:
             - task_key: ejecutar_pipeline
@@ -27,7 +38,7 @@ resources:
             base_parameters:
               catalog: ${var.catalog}
 
-        # Tarea 4: Validación (conteos Silver/Gold, rechazados; falla si Gold está vacío)
+        # Tarea 5: Validación (conteos Silver/Gold, rechazados; falla si Gold está vacío)
         - task_key: validacion
           depends_on:
             - task_key: aplicar_gobierno
