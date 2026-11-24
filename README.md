@@ -6,7 +6,7 @@
 
 El proyecto ElectroCasa establece una plataforma de datos moderna basada en la Data Intelligence Platform de Databricks y la arquitectura Medallion (Bronze, Silver, Gold). El objetivo central es transformar datos crudos de ventas, inventarios, interacciones de personal y retroalimentación de clientes en activos analíticos gobernados de alto valor operacional.
 
-El alcance comprende el procesamiento de 7 fuentes de datos principales:
+El alcance comprende el procesamiento de 7 fuentes de datos principales: 
 
 * **Catálogo de Productos:** Maestra de productos, categorías y precios de lista.  
 * **Ventas:** Transacciones comerciales detalladas por ítem, fecha y sucursal.  
