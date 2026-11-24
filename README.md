@@ -107,7 +107,7 @@ dmc-electrocasa/
 
 ## **2.1. Estrategia y Justificación de Ingesta por Fuente**
 
-Se eligió Auto Loader (cloudFiles) sobre COPY INTO para las fuentes recurrentes (ventas, catalogo, empleados, resenas y devoluciones) porque permite ingestar esquemas heterogéneos y semiestructurados (como los arreglos tags y objetos anidados en JSON Lines de resenas, o los campos numéricos y fechas sucias en texto de ventas, catalogo, empleados y devoluciones) sin abortar la carga ante variaciones de formato, resguardando columnas inesperadas en \_rescued\_data. Además, expone de forma nativa los metadatos de archivo (\_metadata.file\_name y file\_modification\_time) en streaming dentro de Lakeflow Declarative Pipelines para alimentar directamente las reglas de calidad y los flujos AUTO CDC en Silver, reservando COPY INTO únicamente para sucursales por tratarse de un catálogo plano, pequeño y de carga puntual única.
+Se eligió Auto Loader (cloudFiles) sobre COPY INTO para las fuentes recurrentes (ventas, catalogo, empleados, resenas y devoluciones) porque permite ingestar esquemas heterogéneos y semiestructurados (como los arreglos tags y objetos anidados en JSON Lines de resenas, o los campos numéricos y fechas sucias en texto de ventas, catalogo, empleados y devoluciones) sin abortar la carga ante variaciones de formato, resguardando columnas inesperadas en \_rescued\_data. Además, expone de forma nativa los metadatos de archivo (\_metadata.file\_name y file\_modification\_time) en streaming dentro de Lakeflow Declarative Pipelines para alimentar directamente las reglas de calidad y los flujos AUTO CDC en Silver, reservando COPY INTO únicamente para sucursales por tratarse de un catálogo plano, pequeño y de carga puntual única. Cabe mencionar que el Tracking es conexión directa por pipeline ingestion.
 
 | Fuente de Datos | Formato de Archivo | Modo de Ingesta | Justificación Técnica |
 | :---- | :---- | :---- | :---- |
@@ -139,7 +139,7 @@ ORDER BY fecha_ingesta DESC;
 
 ## **3.1. Resumen de Conteos (Bronze, Silver y Rechazados)**
 
-A continuación se detalla el comportamiento del flujo Medallion a través del procesamiento secuencial de tres lotes de prueba:
+A continuación se detalla el comportamiento del flujo Medallion a través del procesamiento secuencial de tres lotes de prueba sin considerar el pipeline ingestion obviado de la tabla tracking:
 
 | Entidad / Fuente | Archivo (Lote) | Registros Bronze | Registros Silver Válidos | Registros Rechazados (Cuarentena) |
 | :---- | :---- | :---- | :---- | :---- |

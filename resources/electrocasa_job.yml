@@ -27,6 +27,15 @@ resources:
             base_parameters:
               catalog: ${var.catalog}
 
+        # Tarea 4: Validación (conteos Silver/Gold, rechazados; falla si Gold está vacío)
+        - task_key: validacion
+          depends_on:
+            - task_key: aplicar_gobierno
+          notebook_task:
+            notebook_path: ../notebooks/02_validacion.ipynb
+            base_parameters:
+              catalog: ${var.catalog}
+
       # Programación opcional (puedes dejarlo comentado o en PAUSED si solo lo correrás manual)
       schedule:
         quartz_cron_expression: "0 0 6 * * ?"
