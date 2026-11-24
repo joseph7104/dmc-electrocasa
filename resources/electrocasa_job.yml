@@ -25,7 +25,7 @@ resources:
         # Tarea 3: Ejecutar el pipeline Lakeflow (Bronze -> Silver -> Gold)
         - task_key: ejecutar_pipeline
           depends_on:
-            - task_key: setup_inicial
+            - task_key: ingesta_sucursales_bronze
           pipeline_task:
             pipeline_id: ${resources.pipelines.electrocasa_pipeline.id}
         
