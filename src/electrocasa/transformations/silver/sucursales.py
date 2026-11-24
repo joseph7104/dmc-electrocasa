@@ -1,5 +1,5 @@
 from pyspark import pipelines as dp
-from pyspark.sql.functions import trim, col, current_timestamp, upper
+from pyspark.sql.functions import trim, col, current_timestamp, upper, inticap
 from pyspark.sql.types import StringType, TimestampType
 from src.electrocasa.schemas.silver.sucursales import schema_sucursales
 
