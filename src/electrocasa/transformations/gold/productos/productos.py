@@ -12,8 +12,8 @@ catalog = spark.conf.get("bundle.catalog")
 def top_productos_cantidad():
     return spark.sql(f"""
     WITH ventas AS(
-        SELECT ct.producto_id, ct.nombre_producto, SUM(vt.cantidad) cantidad FROM electrocasa_dev.silver.ventas vt
-        INNER JOIN electrocasa_dev.silver.catalogo ct ON vt.producto_id = ct.producto_id
+        SELECT ct.producto_id, ct.nombre_producto, SUM(vt.cantidad) cantidad FROM {catalog}.silver.ventas vt
+        INNER JOIN {catalog}.silver.catalogo ct ON vt.producto_id = ct.producto_id
         WHERE vt.fecha_venta >= '2026-03-01' AND vt.fecha_venta < '2026-11-01'
         GROUP BY 1, 2
         
@@ -29,8 +29,8 @@ def top_productos_cantidad():
 def top_productos_devolucion():
     return spark.sql(f"""
     WITH ventas AS(
-        SELECT ct.producto_id, ct.nombre_producto, COUNT(DISTINCT venta_id) cantidad_venta  FROM electrocasa_dev.silver.ventas vt
-        INNER JOIN electrocasa_dev.silver.catalogo ct ON vt.producto_id = ct.producto_id
+        SELECT ct.producto_id, ct.nombre_producto, COUNT(DISTINCT venta_id) cantidad_venta  FROM {catalog}.silver.ventas vt
+        INNER JOIN {catalog}.silver.catalogo ct ON vt.producto_id = ct.producto_id
         WHERE vt.fecha_venta >= '2026-03-01' AND vt.fecha_venta < '2026-11-01'
         GROUP BY 1, 2
     ),
@@ -38,9 +38,9 @@ def top_productos_devolucion():
         SELECT producto_id, nombre_producto, cantidad_venta FROM ventas
     ),
     devoluciones AS(
-        SELECT ct.producto_id, ct.nombre_producto, COUNT(DISTINCT devolucion_id) cantidad_dev FROM electrocasa_dev.silver.devoluciones dv
-        INNER JOIN electrocasa_dev.silver.ventas vt ON dv.venta_id = vt.venta_id -- Se validó que cada devolución tiene su venta asociada
-        INNER JOIN electrocasa_dev.silver.catalogo ct ON dv.producto_id = ct.producto_id
+        SELECT ct.producto_id, ct.nombre_producto, COUNT(DISTINCT devolucion_id) cantidad_dev FROM {catalog}.silver.devoluciones dv
+        INNER JOIN {catalog}.silver.ventas vt ON dv.venta_id = vt.venta_id -- Se validó que cada devolución tiene su venta asociada
+        INNER JOIN {catalog}.silver.catalogo ct ON dv.producto_id = ct.producto_id
         WHERE fecha_devolucion >= '2026-03-01' AND fecha_devolucion < '2026-11-01'
         GROUP BY 1, 2
     ),

@@ -24,8 +24,8 @@ def resenas():
             EXTRACT(YEAR FROM rs.fecha_resena) anho,
             EXTRACT(MONTH FROM rs.fecha_resena) mes,
             COUNT(rs.resena_id) num_resenas_total
-            FROM electrocasa_dev.silver.resenas rs
-            INNER JOIN electrocasa_dev.silver.catalogo ct ON rs.producto_id = ct.producto_id
+            FROM {catalog}.silver.resenas rs
+            INNER JOIN {catalog}.silver.catalogo ct ON rs.producto_id = ct.producto_id
             GROUP BY 1,2,3,4
             ORDER BY 1,2,3,4
         ),
@@ -46,8 +46,8 @@ def resenas():
                 ELSE 'POSITIVO'
             END categoria_calificacion,
             COUNT(rs.resena_id) num_resenas
-            FROM electrocasa_dev.silver.resenas rs
-            INNER JOIN electrocasa_dev.silver.catalogo ct ON rs.producto_id = ct.producto_id
+            FROM {catalog}.silver.resenas rs
+            INNER JOIN {catalog}.silver.catalogo ct ON rs.producto_id = ct.producto_id
             GROUP BY 1,2,3,4,5
             ORDER BY 1,2,3,4,5
         ),

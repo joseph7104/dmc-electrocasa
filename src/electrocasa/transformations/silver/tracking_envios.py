@@ -39,7 +39,13 @@ def staging_catalogo():
         spark.readStream.table(f"{catalog}.{schema_bronze}.tracking_envios")
         .withColumn("tracking_id", trim(col("tracking_id")))
         .withColumn("venta_id", trim(col("venta_id")))
-        .withColumn("courier", trim(col("courier")))
+        .withColumn(
+            "courier",
+            when(upper(trim(col("courier"))).like("OLVA%"), lit("OLVA"))
+            .when(upper(trim(col("courier"))) == "SHALOM", lit("SHALOM"))
+            .when(upper(trim(col("courier"))) == "SERVIENTREGA", lit("SERVIENTREGA"))
+            .otherwise(upper(trim(col("courier"))))
+        )
         .withColumn("estado_entrega", cat_norm)
         .withColumn("sucursal_origen", trim(col("sucursal_origen")))
         .withColumn(

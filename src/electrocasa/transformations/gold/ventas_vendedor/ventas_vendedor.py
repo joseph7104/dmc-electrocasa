@@ -12,12 +12,12 @@ catalog = spark.conf.get("bundle.catalog")
 def ventas_vendedor():
     return spark.sql(f"""
         WITH ventas_base AS(
-            SELECT venta_id, vendedor_id, cantidad, monto_total, fecha_venta FROM electrocasa_dev.silver.ventas
+            SELECT venta_id, vendedor_id, cantidad, monto_total, fecha_venta FROM {catalog}.silver.ventas
             WHERE vendedor_id IS NOT NULL AND canal = 'TIENDA_FISICA'
         ),
         empleados as(
-            SELECT ep.id_empleado, ep.nombre, ep.sucursal_id, s.nombre_sucursal, ep.__START_AT, ep.__END_AT FROM electrocasa_dev.silver.empleados ep
-            INNER JOIN electrocasa_dev.silver.sucursales s ON s.sucursal_id = ep.sucursal_id
+            SELECT ep.id_empleado, ep.nombre, ep.sucursal_id, s.nombre_sucursal, ep.__START_AT, ep.__END_AT FROM {catalog}.silver.empleados ep
+            INNER JOIN {catalog}.silver.sucursales s ON s.sucursal_id = ep.sucursal_id
         ),
         vista_cruzada AS(
             SELECT EXTRACT(YEAR FROM vb.fecha_venta) anho, EXTRACT(MONTH FROM vb.fecha_venta) mes,vb.venta_id, vb.vendedor_id,

@@ -28,8 +28,8 @@ def dotacion_empleados():
         s.nombre_sucursal,
         COUNT(DISTINCT ep.id_empleado) AS cantidad_empleados_activos
     FROM fechas_base fb
-    CROSS JOIN electrocasa_dev.silver.sucursales s
-    LEFT JOIN electrocasa_dev.silver.empleados ep
+    CROSS JOIN {catalog}.silver.sucursales s
+    LEFT JOIN {catalog}.silver.empleados ep
         ON ep.sucursal_id = s.sucursal_id
         AND ep.__START_AT < (fb.ultimo_dia_mes + INTERVAL 1 DAY)
         AND (ep.__END_AT >= (fb.ultimo_dia_mes + INTERVAL 1 DAY) OR ep.__END_AT IS NULL)

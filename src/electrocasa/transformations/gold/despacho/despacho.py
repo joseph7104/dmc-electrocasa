@@ -17,7 +17,7 @@ def despacho():
                 courier,
                 estado_entrega,
                 fecha_modificacion
-            FROM electrocasa_dev.silver.tracking_envios
+            FROM {catalog}.silver.tracking_envios
             WHERE fecha_modificacion >= '2026-03-01' 
             AND fecha_modificacion < '2026-11-01'
             QUALIFY ROW_NUMBER() OVER (

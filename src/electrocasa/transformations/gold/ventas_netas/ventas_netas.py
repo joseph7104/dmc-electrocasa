@@ -18,7 +18,7 @@ def ventas_netas_sucursal_mes():
             sucursal_id,
             SUM(monto_total) AS ventas,
             COUNT(DISTINCT venta_id) AS cantidad_ventas
-        FROM electrocasa_dev.silver.ventas
+        FROM {catalog}.silver.ventas
         WHERE fecha_venta >= '2026-03-01' 
         AND fecha_venta < '2026-11-01'
         GROUP BY 1, 2, 3
@@ -29,7 +29,7 @@ def ventas_netas_sucursal_mes():
             EXTRACT(MONTH FROM fecha_devolucion) AS mes,
             sucursal_id,
             SUM(monto_reembolso) AS devoluciones
-        FROM electrocasa_dev.silver.devoluciones
+        FROM {catalog}.silver.devoluciones
         WHERE fecha_devolucion >= '2026-03-01' 
         AND fecha_devolucion < '2026-11-01'
         GROUP BY 1, 2, 3
@@ -54,7 +54,7 @@ def ventas_netas_sucursal_mes():
         ON v.anho = d.anho 
         AND v.mes = d.mes 
         AND v.sucursal_id = d.sucursal_id
-    INNER JOIN electrocasa_dev.silver.sucursales sc 
+    INNER JOIN {catalog}.silver.sucursales sc 
         ON sc.sucursal_id = COALESCE(v.sucursal_id, d.sucursal_id)
     ORDER BY 1, 2, 3
     """)

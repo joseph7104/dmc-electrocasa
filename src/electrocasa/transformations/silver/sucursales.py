@@ -19,7 +19,7 @@ def silver_sucursales():
         .withColumn("sucursal_id", trim(col("sucursal_id")))
         .withColumn("nombre_sucursal", trim(col("nombre_sucursal")))
         .withColumn("distrito", trim(col("distrito")))
-        .withColumn("ciudad", trim(col("ciudad")))
+        .withColumn("ciudad", initcap(trim(col("ciudad"))))
         .withColumn("region", trim(col("region")))
         .select(
             col("sucursal_id").cast(StringType()),
