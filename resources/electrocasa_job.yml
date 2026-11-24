@@ -16,7 +16,7 @@ resources:
           depends_on:
             - task_key: setup_inicial
           notebook_task:
-            notebook_path: ../notebooks/ingesta_sucursales.ipynb # Ajusta al nombre real de tu notebook
+            notebook_path: ../notebooks/Ingesta_Sucursal.ipynb
             base_parameters:
               catalog: ${var.catalog}
               schema_bronze: ${var.schema_bronze}
